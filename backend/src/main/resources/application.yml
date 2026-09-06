@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: undertow-backend
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:undertow}
+    username: ${DB_USER:undertow}
+    password: ${DB_PASSWORD:undertow}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate        # schema is owned by Flyway, never by Hibernate auto-DDL
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+undertow:
+  market:
+    # which MarketDataProvider bean is active: demo | replay | live
+    provider: ${MARKET_PROVIDER:demo}
+  attention:
+    persistence-threshold: 70
+    resolve-threshold: 50
+    worsen-delta-points: 15
+    debt-normalization-k: 6.0
+    priority-queue:
+      low-cap: 999
+      moderate-cap: 6
+      high-cap: 3
+  signals:
+    rolling-window-days: 20
+    min-history-days: 10
+    decoupling-z-threshold: 2.0
+    silence-min-expected-return-pct: 1.0
+    silence-max-participation-ratio: 0.25
+    historical-abnormality-percentile-threshold: 90.0
+  trust:
+    delayed-threshold-days: 1
+    confidence-live: 1.0
+    confidence-delayed: 0.8
+    confidence-stale: 0.5
+    confidence-conflicting: 0.3
+    confidence-unavailable: 0.0
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    com.undertow: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:undertow;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false

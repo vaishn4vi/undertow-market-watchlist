@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+@theme {
+  /* Palette — restrained fintech ledger, teal as the single accent (water / undertow motif) */
+  --color-bg: #FAFAF8;
+  --color-surface: #FFFFFF;
+  --color-surface-sunken: #F3F3F0;
+  --color-border: #E3E3DF;
+  --color-border-strong: #CFCFC9;
+
+  --color-text: #14151A;
+  --color-text-muted: #6B6F76;
+  --color-text-faint: #9A9DA3;
+
+  --color-accent: #0F5C5C;
+  --color-accent-soft: #E4EFEE;
+  --color-accent-strong: #0B4444;
+
+  --color-positive: #1E7A4C;
+  --color-positive-soft: #E7F4EC;
+  --color-negative: #B3402F;
+  --color-negative-soft: #FBEAE6;
+
+  --color-debt-low: #1E7A4C;
+  --color-debt-moderate: #A6791F;
+  --color-debt-high: #C05A2C;
+  --color-debt-overloaded: #A6332A;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Elevation — used sparingly: resting cards stay flat (border only),
+     shadows mark things that float above the page (popovers, drawers,
+     hover states on interactive cards). */
+  --shadow-xs: 0 1px 2px 0 rgba(20, 21, 26, 0.04);
+  --shadow-sm: 0 2px 8px -2px rgba(20, 21, 26, 0.08), 0 1px 2px 0 rgba(20, 21, 26, 0.04);
+  --shadow-md: 0 8px 24px -4px rgba(20, 21, 26, 0.12), 0 2px 8px -2px rgba(20, 21, 26, 0.06);
+  --shadow-lg: 0 16px 48px -8px rgba(20, 21, 26, 0.16), 0 4px 12px -2px rgba(20, 21, 26, 0.08);
+
+  /* Type scale — six steps, used in place of ad hoc text-xl/text-2xl so
+     headings stay consistent across pages. */
+  --text-display: 2rem;      /* 32px — dashboard hero number */
+  --text-h1: 1.5rem;         /* 24px — page titles */
+  --text-h2: 1.0625rem;      /* 17px — section headings */
+  --text-body: 0.875rem;     /* 14px — default body */
+  --text-small: 0.8125rem;   /* 13px — secondary text, table cells */
+  --text-micro: 0.6875rem;   /* 11px — eyebrows, labels, timestamps */
+
+  /* Chart palette — derived from existing semantic tokens, no new hues.
+     Use for sparklines / multi-series charts that need >2 colors. */
+  --chart-1: var(--color-accent);
+  --chart-2: var(--color-debt-moderate);
+  --chart-3: var(--color-text-muted);
+  --chart-4: var(--color-positive);
+  --chart-5: var(--color-negative);
+
+  /* Motion — three named durations/easings so Framer Motion usage is
+     consistent instead of ad hoc per component. */
+  --motion-micro-duration: 0.15s;
+  --motion-panel-duration: 0.3s;
+  --motion-page-duration: 0.45s;
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Respect reduced-motion preferences globally for CSS-driven animation.
+     Framer Motion components still animate (each one is short/functional -
+     conveying state change, not decoration) but the pulsing "live" dot and
+     any CSS transitions/keyframe animations are stopped outright, since
+     those are the ones most likely to be experienced as continuous motion
+     rather than a one-off transition. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Applied to interactive cards (priority queue, watchlist rows) so
+     hover/focus lifts them off the flat resting state consistently. */
+  .surface-interactive {
+    transition: box-shadow var(--motion-micro-duration) var(--motion-ease),
+      border-color var(--motion-micro-duration) var(--motion-ease),
+      transform var(--motion-micro-duration) var(--motion-ease);
+  }
+
+  .surface-interactive:hover {
+    box-shadow: var(--shadow-sm);
+    border-color: var(--color-border-strong);
+  }
+
+  .surface-interactive:active {
+    transform: scale(0.997);
+  }
+
+  /* Very subtle underwater/flow wash for the Attention Debt hero card only.
+     Two soft radial washes in the existing accent color at low opacity -
+     no gradients loud enough to read as decoration, no literal wave
+     shapes. Meant to be felt more than seen. */
+  .flow-surface {
+    background-image:
+      radial-gradient(ellipse 640px 220px at 15% 130%, rgba(15, 92, 92, 0.05), transparent 60%),
+      radial-gradient(ellipse 520px 200px at 85% -30%, rgba(15, 92, 92, 0.04), transparent 60%);
+    background-repeat: no-repeat;
+  }
+
+  /* Indeterminate progress bar for the replay run - honest about not
+     having real server-sent progress, so it slides rather than claims a
+     percentage. */
+  @keyframes indeterminate-slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
+  }
+  .progress-indeterminate {
+    animation: indeterminate-slide 1.2s ease-in-out infinite;
+  }
+}
